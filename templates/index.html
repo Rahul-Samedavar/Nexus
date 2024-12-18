@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nexus</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <!-- <link rel="stylesheet" href="../static/styles.css" /> -->
+  </head>
+  <body>
+    <nav>
+      <h1>Nexus GPT</h1>
+      <div>
+        <button class="btn" onclick="hidechat()">New Chat</button>
+        <button class="btn red-btn" onclick="deleteSession()">
+          Delete Chat
+        </button>
+      </div>
+    </nav>
+    <div class="container">
+      <div class="sessions">
+        <input
+          type="text"
+          class="search-bar"
+          id="sessionSearch"
+          placeholder="Search sessions..."
+        />
+        <ul class="session-list" id="sessionList"></ul>
+      </div>
+      <div class="new-session-prompt" id="new-session-prompt">
+        <h1>Start a new Chat</h1>
+        <div>
+            <input type="text" id="title-inp" placeholder="Enter a title" />
+            <button class="btn" onclick="createSession()">start chat</button>
+        </div>
+      </div>
+      <div class="chat-container" id="chat-container">
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+          <textarea
+            id="userInput"
+            placeholder="Type your message..."
+          ></textarea>
+          <button onclick="sendMessage()">
+            <img src="../static/assets/send.png" alt="" />
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- <script src="../static/scripts.js"></script> -->
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+  </body>
+</html>
