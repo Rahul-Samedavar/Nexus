@@ -33,6 +33,7 @@ function populateSessions() {
     .catch((error) => console.error("Fetch Error:", error));
 
 }
+
 function getChats(sessionId) {
   fetch(`/get_chats/${sessionId}`, {
     method: "GET",
@@ -56,10 +57,10 @@ function loadSession(sessionId) {
 }
 
 function addMessage(message, isUser) {
-  const messageElement = document.createElement("div");
+  const messageElement = document.createElement("md-block");
   messageElement.classList.add("message");
   messageElement.classList.add(isUser ? "user-message" : "bot-message");
-  messageElement.textContent = message;
+  messageElement.innerHTML = message;
   chatMessages.appendChild(messageElement);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
@@ -108,7 +109,7 @@ function createSession() {
         }
       })
       .catch((error) => console.error("Fetch Error:", error));
-  }
+}
   
 function deleteSession(session_id=current_session_id) {
     if (session_id == -1) return;
@@ -131,7 +132,7 @@ function deleteSession(session_id=current_session_id) {
       })
       .catch((error) => console.error("Fetch Error:", error));
 
-  }
+}
 
 sessionSearch.addEventListener("input", function () {
   const searchTerm = this.value.toLowerCase();
@@ -176,4 +177,3 @@ function clearInputs() {
 clearInputs()
 hidechat();
 populateSessions();
-

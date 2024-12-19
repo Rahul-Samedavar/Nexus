@@ -8,7 +8,6 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='styles.css') }}"
     />
-    <!-- <link rel="stylesheet" href="../static/styles.css" /> -->
   </head>
   <body>
     <nav>
@@ -49,8 +48,8 @@
           </button>
         </div>
       </div>
-    </div>
-    <!-- <script src="../static/scripts.js"></script> -->
-    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+    </div>        
+    <script type="module" src="https://md-block.verou.me/md-block.js"></script>
+    <script src="{{ url_for('static', filename='scripts.js') }}" defer></script>
   </body>
 </html>
