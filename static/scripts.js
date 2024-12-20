@@ -3,9 +3,21 @@ const chatMessages = document.getElementById("chatMessages");
 const userInput = document.getElementById("userInput");
 const sessionList = document.getElementById("sessionList");
 const sessionSearch = document.getElementById("sessionSearch");
-var current_session_id = -1;
+const send_btn = document.getElementById("send-btn");
+const fileInput = document.getElementById('fileInput');
 
+var current_session_id = -1;
 var sessions = [];
+
+function disable_Send(){
+  send_btn.disabled = true;
+  send_btn.classList.add("disabled");
+}
+
+function enable_Send(){
+  send_btn.disabled = false;
+  send_btn.classList.remove("disabled");
+}
 
 function populateSessions() {
   sessionList.innerHTML = "";
@@ -41,7 +53,11 @@ function getChats(sessionId) {
     .then((response) => response.json())
     .then((data) => {
       if (data.chats) {
-        data.chats.forEach((chat) => addMessage(chat.message, chat.sender));
+        data.chats.forEach((chat) => {
+            if (chat.message_type === 'text') addMessage(chat.message, chat.sender);
+            else if (chat.message_type === 'file') addFileMessage(JSON.parse(chat.message))
+
+        });
       } else {
         alert("Error:\n" + data.error);
       }
@@ -65,9 +81,32 @@ function addMessage(message, isUser) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
+function addFileMessage(message){
+  const messageElement = document.createElement("md-block");
+  messageElement.classList.add("message",  "file-message");
+  console.log(message)
+  messageElement.innerHTML = `
+    <h2>${message.file_name}</h2>
+    <div>${message.content}</div>
+  `
+  chatMessages.appendChild(messageElement);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+
 function sendMessage() {
+  const files = fileInput.files;
+  
+  if (files && files.length > 0)  {
+    disable_Send();
+    uploadFiles(files).then(sendMessage);
+    enable_Send();
+    return;
+  }
   message = userInput.value;
-  if (!message) return;
+  userInput.value = "";
+  if (!message || message==="") return;
+  disable_Send();
   addMessage(message, true);
   fetch("/send_message", {
     method: "POST",
@@ -79,13 +118,17 @@ function sendMessage() {
     .then((response) => response.json())
     .then((data) => {
       if (data.message) {
-        userInput.value = "";
         addMessage(data.message, false);
       } else {
         addMessage("Error:\n" + data.message, false);
       }
+      enable_Send()
     })
-    .catch((error) => console.error("Fetch Error:", error));
+    .catch((error) => {
+      console.error("Fetch Error:", error);
+      userInput.value = message;
+      enable_Send();
+    });
 }
 
 
@@ -122,7 +165,6 @@ function deleteSession(session_id=current_session_id) {
       .then((response) => response.json())
       .then((data) => {
         if (data.message) {
-          alert("Session Deleted: " + data.message);
           populateSessions();
           hidechat();
           clearInputs();
@@ -133,6 +175,41 @@ function deleteSession(session_id=current_session_id) {
       .catch((error) => console.error("Fetch Error:", error));
 
 }
+
+function uploadFiles(files) {
+
+  const url = '/upload_files';
+  const formData = new FormData();
+
+  formData.append('session_id', current_session_id);
+
+  for (const file of files) {
+      formData.append('files[]', file);
+  }
+  return fetch(url, {
+      method: 'POST',
+      body: formData,
+  })
+      .then(response => {
+          fileInput.value = "";
+          if (!response.ok) {
+              return response.json().then(error => {
+                  throw new Error(error.error);
+              });
+          }
+          return response.json();
+      })
+      .then(result => {
+          if (result?.message) 
+            result.message.forEach(message => addFileMessage(message));
+  
+      })
+      .catch(err => {
+          console.error("Error while uploading files:", err.message);
+          enable_Send()
+      });
+}
+
 
 sessionSearch.addEventListener("input", function () {
   const searchTerm = this.value.toLowerCase();

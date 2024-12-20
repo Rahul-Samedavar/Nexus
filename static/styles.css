@@ -171,6 +171,16 @@ nav {
   align-self: end;
 }
 
+.file-message{
+  background-color: #e6f2ff;
+  align-self: end;
+}
+.file-message > div{
+  max-height: 20rem !important;
+  height: 20rem !important;
+  overflow: scroll ;
+}
+
 .bot-message {
   background-color: #f0f0f0;
 }
@@ -193,7 +203,7 @@ nav {
   padding-top: .5rem;
 }
 
-.message :first-child{
+.message > :first-child{
   padding-top: 0;
 }
 
@@ -213,7 +223,7 @@ thead tr{
 }
 
 tr > th{
-  background: #ccc;
+  background: #b463dd;
   border-bottom: 1px solid black;
   font-size: large;
 }
@@ -252,10 +262,14 @@ md-block pre:hover{
   color: rgb(72, 26, 86);
 }
 
+.file-message pre{
+  border: none;
+  background: transparent !important;
+}
+
 
 .chat-input {
   display: flex;
-  align-items: end;
 }
 
 .chat-input textarea {
@@ -270,18 +284,28 @@ md-block pre:hover{
   border: 1px solid #333;
 }
 
-.chat-input button {
+.input-options{
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: .5rem;
+}
+
+.input-options img{
+  width: 1.5rem;
+}
+
+.input-options > *{
   font-size: 1rem;
   background-color: #ffffff;
   border: none;
   cursor: pointer;
   height: fit-content;
   border-radius: .5rem;
-  background-image: url("./assets/send.png");
 }
 
-.chat-input button img{
-  width: 1.5rem;
+.disabled{
+  opacity: 50%;
 }
 
 @media (max-width: 768px) {

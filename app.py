@@ -1,14 +1,19 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-import sys
 
-from markdown import markdown
+from werkzeug.utils import secure_filename
+from PyPDF2 import PdfReader
+from docx import Document
+import os
+from io import BytesIO
+from json import dumps
+
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 
 template = """
-    Answer the question below.
+    You are Nexus my personal chatbot. Answer the question.
 
     here is the conversation history: {context}
 
@@ -40,8 +45,9 @@ AI = False
 class Chat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.Integer, db.ForeignKey('session.id'), nullable=False)
-    message = db.Column(db.String(500), nullable=False)
+    message = db.Column(db.String(5000), nullable=False)  # Increase size if needed for large file content
     sender = db.Column(db.Boolean, nullable=False)
+    message_type = db.Column(db.String(50), default='text')  # 'text', 'file'
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     session = db.relationship('Session', back_populates='chats')
 
@@ -51,6 +57,7 @@ class Chat(db.Model):
 with app.app_context():
     db.create_all()
 
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx'}
 
 
 @app.route('/')
@@ -113,9 +120,7 @@ def send_message():
         user_chat = Chat(session_id=session_id, message=message, sender=USER)
         db.session.add(user_chat)
 
-        result = chain.invoke({"rules": rules, "context": context, "question": message})
-        print(result)
-        print(markdown(result))
+        result = chain.invoke({"context": context, "question": message})
         ai_chat = Chat(session_id=session_id, message=result, sender=AI)
         db.session.add(ai_chat)
 
@@ -129,6 +134,63 @@ def send_message():
         db.session.rollback()
         return {'error': f'Failed to process message: {str(e)}'}, 500
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/upload_files', methods=['POST'])
+def upload_files():
+    global context
+    session_id = request.form.get('session_id')
+    if not session_id:
+        return {'error': 'Missing session_id'}, 400
+
+    session = Session.query.get(session_id)
+    if not session:
+        return {'error': 'Session not found'}, 404
+
+    if 'files[]' not in request.files:
+        return {'error': 'No files part in the request'}, 400
+
+    files = request.files.getlist('files[]')
+
+    if not files or all(file.filename == '' for file in files):
+        return {'error': 'No files selected'}, 400
+
+    try:
+        res = []
+        for file in files:
+            if file and allowed_file(file.filename):
+                print("file: ", file)
+                file_content = ""
+                _, ext = os.path.splitext(file.filename)
+
+                if ext == '.txt':
+                    file_content = file.read().decode('utf-8')
+                elif ext == '.pdf':
+                    pdf_reader = PdfReader(BytesIO(file.read()))
+                    file_content = "".join([page.extract_text() for page in pdf_reader.pages])
+                elif ext == '.docx':
+                    doc = Document(BytesIO(file.read()))
+                    file_content = "\n".join([para.text for para in doc.paragraphs])
+                else:
+                    continue
+                message = {
+                    'file_name': file.filename,
+                    'content': file_content,
+                }
+
+                file_chat = Chat(session_id=session_id, message=dumps(message), sender=USER, message_type='file')
+                db.session.add(file_chat)
+                res.append(message)
+                context += f"\n[File]: {dumps(message)}\n"
+
+        db.session.commit()
+        return {'message': res}, 201
+
+    except Exception as e:
+        db.session.rollback()
+        return {'error': f'Failed to process files: {str(e)}'}, 500
 
 @app.route('/get_chats/<int:session_id>', methods=['GET'])
 def get_chats(session_id):
@@ -139,18 +201,18 @@ def get_chats(session_id):
 
     chats_ = Chat.query.filter_by(session_id=session_id).order_by(Chat.timestamp).all()
     context = "";
-    chats = [
-        {
-            'id': chat.id,
-            'message': chat.message,
-            'sender': chat.sender,
-            'timestamp': chat.timestamp
-        }
-        for chat in chats_
-    ]
+    chats = []
 
-    for i in range(0, len(chats), 2):
-        context += f"\nUser: {chats[i]['message']}\nAI: {chats[i+1]['message']}"
+    for chat in chats_:
+        if chat.message_type in ['text', 'file']:
+            context += f"\n{'User' if chat.sender else 'AI'}: {chat.message}"
+            chats.append({
+                'id': chat.id,
+                'message': chat.message,
+                'sender': chat.sender,
+                'message_type': chat.message_type,
+                'timestamp': chat.timestamp
+        })
 
     return {
         'session_id': session_id,
@@ -175,3 +237,4 @@ def get_sessions():
 
 if __name__ == '__main__':
     app.run(debug=True)
+

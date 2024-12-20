@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000">
+    <meta http-equiv="Expires" content="Fri, 31 Dec 2025 23:59:59 GMT">
     <title>Nexus</title>
     <link
       rel="stylesheet"
@@ -43,13 +45,21 @@
             id="userInput"
             placeholder="Type your message..."
           ></textarea>
-          <button onclick="sendMessage()">
-            <img src="../static/assets/send.png" alt="" />
-          </button>
+          <div class="input-options">
+            <input type="file" id="fileInput" multiple hidden>
+            <label for="fileInput" class="file-inp-label">
+              <img src="../static/assets/files.png" alt="" />
+            </label>
+            
+            <button onclick="sendMessage()" id="send-btn" class="send-btn">
+              <img src="../static/assets/send.png" alt="" />
+            </button>
+          </div>
         </div>
       </div>
     </div>        
-    <script type="module" src="https://md-block.verou.me/md-block.js"></script>
+    <!-- <script type="module" src="https://md-block.verou.me/md-block.js"></script> -->
+    <script type="module" src="{{ url_for('static', filename='libs/md-block.js') }}"></script>
     <script src="{{ url_for('static', filename='scripts.js') }}" defer></script>
   </body>
 </html>
