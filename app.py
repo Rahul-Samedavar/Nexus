@@ -3,14 +3,16 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
 from werkzeug.utils import secure_filename
-from PyPDF2 import PdfReader
-from docx import Document
+
 import os
 from io import BytesIO
 from json import dumps
 
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
+
+
+from file_readers import *
 
 template = """
     You are Nexus my personal chatbot. Answer the question.
@@ -57,7 +59,6 @@ class Chat(db.Model):
 with app.app_context():
     db.create_all()
 
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx'}
 
 
 @app.route('/')
@@ -134,9 +135,6 @@ def send_message():
         db.session.rollback()
         return {'error': f'Failed to process message: {str(e)}'}, 500
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 @app.route('/upload_files', methods=['POST'])
 def upload_files():
@@ -161,20 +159,7 @@ def upload_files():
         res = []
         for file in files:
             if file and allowed_file(file.filename):
-                print("file: ", file)
-                file_content = ""
-                _, ext = os.path.splitext(file.filename)
-
-                if ext == '.txt':
-                    file_content = file.read().decode('utf-8')
-                elif ext == '.pdf':
-                    pdf_reader = PdfReader(BytesIO(file.read()))
-                    file_content = "".join([page.extract_text() for page in pdf_reader.pages])
-                elif ext == '.docx':
-                    doc = Document(BytesIO(file.read()))
-                    file_content = "\n".join([para.text for para in doc.paragraphs])
-                else:
-                    continue
+                file_content = read_file(file)
                 message = {
                     'file_name': file.filename,
                     'content': file_content,

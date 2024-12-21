@@ -39,12 +39,13 @@
         </div>
       </div>
       <div class="chat-container" id="chat-container">
+
         <div class="chat-messages" id="chatMessages"></div>
+        
+        <div id="preview-container" class="preview-container"></div>
+
         <div class="chat-input">
-          <textarea
-            id="userInput"
-            placeholder="Type your message..."
-          ></textarea>
+          <textarea id="userInput" placeholder="Type your message..."></textarea>
           <div class="input-options">
             <input type="file" id="fileInput" multiple hidden>
             <label for="fileInput" class="file-inp-label">
@@ -60,6 +61,7 @@
     </div>        
     <!-- <script type="module" src="https://md-block.verou.me/md-block.js"></script> -->
     <script type="module" src="{{ url_for('static', filename='libs/md-block.js') }}"></script>
+    <script src="{{ url_for('static', filename='upload.js') }}" defer></script>
     <script src="{{ url_for('static', filename='scripts.js') }}" defer></script>
   </body>
 </html>
