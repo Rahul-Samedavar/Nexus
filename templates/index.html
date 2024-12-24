@@ -47,6 +47,12 @@
         <div class="chat-input">
           <textarea id="userInput" placeholder="Type your message..."></textarea>
           <div class="input-options">
+            
+            <button onclick="toggleModelSelector()" id="models-btn">
+              <span id="model-name-label" class="model-label-hidden"></span>
+              <img src="../static/assets/model.png" alt="" />
+            </button>
+            
             <input type="file" id="fileInput" multiple hidden>
             <label for="fileInput" class="file-inp-label">
               <img src="../static/assets/files.png" alt="" />
@@ -56,9 +62,21 @@
               <img src="../static/assets/send.png" alt="" />
             </button>
           </div>
+          
+
+          <div class="popup" id="model-selector">
+            <h2>Select Model</h2>
+            <table class="list" id="model-selector-list">
+              <tr><td><button onclick="alert('lol')">mistral</button></td></tr>
+
+            </table>
+          </div>
         </div>
       </div>
-    </div>        
+    </div>
+
+
+
     <!-- <script type="module" src="https://md-block.verou.me/md-block.js"></script> -->
     <script type="module" src="{{ url_for('static', filename='libs/md-block.js') }}"></script>
     <script src="{{ url_for('static', filename='upload.js') }}" defer></script>

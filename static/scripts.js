@@ -3,6 +3,13 @@ const userInput = document.getElementById("userInput");
 const sessionList = document.getElementById("sessionList");
 const sessionSearch = document.getElementById("sessionSearch");
 const send_btn = document.getElementById("send-btn");
+const model_selector = document.getElementById("model-selector");
+const models_list = document.getElementById("model-selector-list");
+const model_list_btn = document.getElementById("models-btn");
+const model_name_label = document.getElementById("model-name-label");
+
+var models = [];
+update_models();
 
 var current_session_id = -1;
 var sessions = [];
@@ -17,9 +24,14 @@ function enable_Send() {
   send_btn.classList.remove("disabled");
 }
 
-function copyText(text) {
+async function copyText(text) {
   console.log(text);
-  navigator.clipboard.writeText(text);
+  await navigator.clipboard.writeText(text);
+}
+
+function escape(text){
+  return text
+  .replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(/\r/g, '\\r').replace(/\"/g, '\\"').replace(/'/g, "\\'");
 }
 
 function populateSessions() {
@@ -33,6 +45,7 @@ function populateSessions() {
         sessions = data.sessions;
         data.sessions.forEach((session) => {
           const li = document.createElement("li");
+          li.id = `session-${session.session_id}`;
           li.innerHTML = `
                     <div class="session-title">${session.title}</div>
                     <div class="session-timestamp">${session.created_at}<button onclick='deleteSession(${session.session_id})'><img src='../static/assets/delete.png'></img></button></div>
@@ -73,33 +86,37 @@ function loadSession(sessionId) {
   current_session_id = sessionId;
   showchat();
   getChats(sessionId);
-}
-
-function copy_btn(text, disp = "copy") {
-  let btn = document.createElement("button");
-  btn.classList.add("copy-btn");
-  btn.innerHTML = disp;
-  btn.addEventListener("click", () => copyText(text));
-  return btn;
+  let prev = document.querySelector(".current-session");
+  if (prev) prev.classList.remove("current-session");
+  document
+    .getElementById(`session-${sessionId}`)
+    .classList.add("current-session");
 }
 
 function addMessage(message, isUser) {
-  const messageElement = document.createElement("md-block");
+  const messageElement = document.createElement("div");
   messageElement.classList.add("message");
   messageElement.classList.add(isUser ? "user-message" : "bot-message");
-  messageElement.textContent = message;
-  messageElement.appendChild(copy_btn(message));
+  let body = document.createElement("md-block");
+  body.textContent = message
+  messageElement.appendChild(body);
+  div = document.createElement("div");
+  div.innerHTML = `<button class="copy-btn" onclick="navigator.clipboard.writeText('${escape(message)}')">...</button>`;
+  messageElement.appendChild(div);
   chatMessages.appendChild(messageElement);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 function addFileMessage(message) {
-  const messageElement = document.createElement("md-block");
+  const messageElement = document.createElement("div");
   messageElement.classList.add("message", "file-message");
-  messageElement.innerHTML = `
+  let body = document.createElement("md-block");
+  body.innerHTML = `
     <h2>${message.file_name}</h2>
     <div>${message.content}</div>
   `;
+  messageElement.innerHTML+=`<button class="copy-btn" onclick="navigator.clipboard.writeText('${escape(message.content)}')">...</button>`;
+  messageElement.appendChild(body);
   chatMessages.appendChild(messageElement);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
@@ -115,9 +132,9 @@ function sendMessage() {
   }
   message = userInput.value;
   userInput.value = "";
-  if (!message ||  !/[^ \n]+/.test(message)){
+  if (!message || !/[^ \n]+/.test(message)) {
     enable_Send();
-     return;
+    return;
   }
   disable_Send();
   addMessage(message, true);
@@ -221,6 +238,66 @@ function uploadFiles(files) {
     });
 }
 
+function update_models() {
+  sessionList.innerHTML = "";
+  fetch("/models", {
+    method: "GET",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.models) {
+        models = data.models;
+        models_list.innerHTML = "";
+        models.forEach(
+          (model) =>
+            (models_list.innerHTML += `<tr><td><button onclick="set_model('${model}')" id='model-${model}'>${model}</button></td></tr>`)
+        );
+        get_model();
+      } else {
+        alert("Error: " + data.error);
+      }
+    })
+    .catch((error) => console.error("Fetch Error:", error));
+}
+
+function get_model() {
+  fetch(`/get_model`, {
+    method: "GET",
+  })
+    .then((response) => response.json())
+    .then((data) => highlight_selected_model(data.model))
+    .catch((error) => console.error("Fetch Error:", error));
+}
+
+function highlight_selected_model(model_name) {
+  prev = document.querySelector(".selected-model");
+  if (prev) prev.classList.remove("selected-model");
+
+  let el = document.getElementById(`model-${model_name}`);
+  model_name_label.innerHTML = model_name;
+  console.log(model_name);
+  el.classList.add("selected-model");
+}
+
+
+function set_model(model_name) {
+  disable_Send();
+  fetch(`/set_model/${model_name}`, {
+    method: "GET",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        model_selector.style.display = "none";
+        highlight_selected_model(model_name);
+      } else {
+        alert("Error:\n" + data.error);
+      }
+      enable_Send();
+    })
+    .catch((error) => console.error("Fetch Error:", error));
+}
+
 sessionSearch.addEventListener("input", function () {
   const searchTerm = this.value.toLowerCase();
   const filteredSessions = sessions.filter((session) =>
@@ -244,6 +321,14 @@ userInput.addEventListener("keypress", function (event) {
   }
 });
 
+model_list_btn.addEventListener("mouseenter", () => {
+  model_name_label.classList.remove("model-label-hidden");
+});
+
+model_list_btn.addEventListener("mouseleave", () => {
+  model_name_label.classList.add("model-label-hidden");
+});
+
 var chat_container = document.getElementById("chat-container");
 var new_session_prompt = document.getElementById("new-session-prompt");
 function showchat() {
@@ -261,6 +346,13 @@ function clearInputs() {
 
   inputs.forEach((input) => (input.value = ""));
 }
+
+function toggleModelSelector() {
+  if (model_selector.style.display == "none")
+    model_selector.style.display = "block";
+  else model_selector.style.display = "none";
+}
+
 clearInputs();
 hidechat();
 populateSessions();

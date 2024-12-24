@@ -13,7 +13,6 @@ def allowed_file(filename):
 
 
 def read_txt(file):
-    print("readinng text")
     return file.read().decode('utf-8')
 
 def read_pdf(file):

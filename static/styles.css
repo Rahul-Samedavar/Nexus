@@ -75,6 +75,10 @@ nav {
   border-bottom: 1px solid #ccc;
 }
 
+.current-session{
+  color: #a818f0;
+}
+
 .session-list li:hover {
   background-color: #e0e0e0;
 }
@@ -87,7 +91,7 @@ nav {
   display: flex;
   justify-content: space-between;
   font-size: 0.8rem;
-  color: #666;
+  opacity: .6;
 }
 
 
@@ -155,13 +159,10 @@ nav {
 
 .message {
   margin-bottom: 1rem;
-  padding: 1.3rem 1.3rem;
   border-radius: 1rem;
   width: fit-content;
   max-width: 90%;
-  display: flex;
-  flex-direction: column;
-  gap: .2rem;
+  position: relative;
 }
 
 
@@ -175,7 +176,7 @@ nav {
   background-color: #e6f2ff;
   align-self: end;
 }
-.file-message > div{
+.file-message >md-block > div{
   max-height: 20rem !important;
   height: 20rem !important;
   overflow: scroll ;
@@ -185,26 +186,44 @@ nav {
   background-color: #f0f0f0;
 }
 
-.message > *{
+md-block{
+  padding: 1.3rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+md-block > *{
   padding: .2rem;
   line-height: 1.4rem;
 }
 
-.message li{
+md-block li{
   margin-left: 2rem;
 }
 
-.message > h1{
+md-block > h1{
   padding-top: 1rem;
   padding-bottom: .5rem;
 }
 
-.message > h2{
+md-block > h2{
   padding-top: .5rem;
 }
 
-.message > :first-child{
+md-block > :first-child{
   padding-top: 0;
+}
+
+.copy-btn{
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  border: none;
+  background: none;
+  font-size: 20px;
+  padding: .23rem .5rem;
+  cursor: pointer;
 }
 
 table{
@@ -270,6 +289,7 @@ md-block pre:hover{
 
 .chat-input {
   display: flex;
+  position: relative;
 }
 
 .chat-input textarea {
@@ -287,8 +307,8 @@ md-block pre:hover{
 .input-options{
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  gap: .5rem;
+  justify-content: space-between;
+  padding: 3px 0 0 0;
 }
 
 .input-options img{
@@ -381,4 +401,79 @@ md-block pre:hover{
   justify-content: center;
   align-items: center;
   cursor: pointer;
+}
+
+#models-btn{
+  position: relative;
+}
+
+#model-name-label{
+  position: absolute;
+  top: -1px;
+  right: 30px;
+  background: #333;
+  border-radius: 1rem;
+  color: #fff;
+  padding: .2rem .5rem;
+  transition: .5s linear;
+  width: max-content;
+}
+
+.model-label-hidden{
+  opacity: 0;
+  right: 24px !important;
+}
+
+
+#model-selector{
+  display: none;
+  position: absolute;
+  border: 2px solid #333;
+  border-radius: .5rem;
+  right: 40px;
+  bottom: 20px;
+  background: #fff;
+  width: max-content;
+  height: 18rem;
+  overflow: scroll;
+}
+
+.list{
+  min-width: 18rem;
+  margin: 0;
+}
+
+#model-selector h2{
+  background: #333;
+  padding: .5rem 0;
+  text-align: center;
+  color: #fff;
+  position: sticky;
+  top: 0;
+}
+
+#model-selector tr{
+  border-bottom: 1px #333 solid;
+}
+
+.list > tbody:nth-child(odd){
+  background: #f3f3f3;
+}
+
+#model-selector td{
+  padding: 0;
+}
+
+#model-selector button{
+  border: none;
+  background: none;
+  width: 100%;
+  font-size: medium;
+  height: 2.5rem;
+  cursor: pointer;
+}
+
+.selected-model{
+  font-weight: bold;
+  color: #a818f0;
 }

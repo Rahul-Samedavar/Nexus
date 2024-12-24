@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import subprocess
 
 from werkzeug.utils import secure_filename
 
@@ -14,6 +15,17 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from file_readers import *
 
+
+def list_models():
+    try:
+        result = subprocess.run(["ollama", "list"], capture_output=True, text=True, check=True)
+        lines = result.stdout.strip().split("\n")
+        firsts = [line.split()[0] for line in lines]
+        return firsts[firsts.index("NAME")+1:]
+    except subprocess.CalledProcessError as e:
+        print("Error: " + e.stderr)
+        return []
+
 template = """
     You are Nexus my personal chatbot. Answer the question.
 
@@ -24,11 +36,16 @@ template = """
     Answer:
 
 """
+model_list = list_models()
+DEFAULT_MODEL = "mistral:latest" 
 
-model = OllamaLLM(model="llama3")
+current_model = DEFAULT_MODEL if DEFAULT_MODEL in model_list else model_list[0]
+model = OllamaLLM(model=current_model)
 prompt = ChatPromptTemplate.from_template(template)
 chain = prompt | model
 context = ''
+
+
 
 app = Flask(__name__)
 
@@ -204,22 +221,70 @@ def get_chats(session_id):
         'chats': chats
     }, 200
 
+TITLE_PROMPT = "Answer in exactly 2-3 words that form the best title for this context. dont use qoutes."
+def new_title(session_id):
+    print("callde")
+    chats = Chat.query.filter_by(session_id=session_id).order_by(Chat.timestamp).all()
+    if len(chats) == 0:
+        return "Untitled"
+    temp = ""
+    for chat in chats:
+        temp += f"\n{'User' if chat.sender else 'AI'}: {chat.message}"
+    ans = chain.invoke({"context": temp, "question": TITLE_PROMPT})
+    Session.query.filter_by(id=session_id).update({Session.title: ans})
+    db.session.commit()
+    return ans
+
+
 @app.route('/get_sessions', methods=['GET'])
 def get_sessions():
     sessions = Session.query.order_by(Session.created_at.desc()).all()
-
-    session_list = [
-        {
+    session_list = []
+    for  session in sessions:
+        session_list.append({
             'session_id': session.id,
-            'title': session.title,
+            'title': new_title(session.id) if session.title == "Untitled" else session.title ,
             'created_at': session.created_at
-        }
-        for session in sessions
-    ]
+        })
 
     return {'sessions': session_list}, 200
+
+
+@app.route('/models', methods=['GET'])
+def get_models():
+    try:
+        return {'models': list_models()}
+    except Exception as e:
+        return {'error': str(e)}
+
+
+@app.route('/set_model/<string:model_name>', methods=['GET'])
+def set_model(model_name):
+    global model, chain, current_model
+    try:
+        if current_model != model_name:
+            model = OllamaLLM(model=model_name)
+            chain = prompt | model
+            current_model = model_name
+        return {'success': True}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
+
+
+@app.route('/get_model', methods=['GET'])
+def get_model():
+    return {'model': current_model}
 
 
 if __name__ == '__main__':
     app.run(debug=True)
 
+"""
+TODO: add copy code and copy message
+
+TODO: improve the model.
+TODO: Vector spaces.
+TODO: Code running functionality.
+TODO: Browsing functionality.
+"""
