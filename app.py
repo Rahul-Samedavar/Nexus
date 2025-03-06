@@ -14,6 +14,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 
 from file_readers import *
+from config import *
 
 
 def list_models():
@@ -27,7 +28,7 @@ def list_models():
         return []
 
 template = """
-    You are Nexus my personal chatbot. Answer the question.
+    You are Nexus my personal chatbot. Answer the question. Use Markdown format whenever you can.
 
     here is the conversation history: {context}
 
@@ -39,8 +40,26 @@ template = """
 model_list = list_models()
 DEFAULT_MODEL = "mistral:latest" 
 
+
+
 current_model = DEFAULT_MODEL if DEFAULT_MODEL in model_list else model_list[0]
-model = OllamaLLM(model=current_model)
+
+
+def load_model():
+    model_config = get_model_config()
+    return OllamaLLM(
+        model=current_model,
+        temperature=model_config['temperature'],
+        max_tokens=model_config['max_tokens'],
+        top_k= model_config['top_k'],
+        top_p=model_config['top_p'],
+        num_gpu=model_config['num_gpu'],
+        repeat_last_n=model_config['repeat_last_n'],
+        repeat_penalty=model_config['repeat_penalty'],
+        num_thread=model_config['num_thread']
+    )
+
+model = load_model()
 prompt = ChatPromptTemplate.from_template(template)
 chain = prompt | model
 context = ''
@@ -64,9 +83,9 @@ AI = False
 class Chat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.Integer, db.ForeignKey('session.id'), nullable=False)
-    message = db.Column(db.String(5000), nullable=False)  # Increase size if needed for large file content
+    message = db.Column(db.String(5000), nullable=False)  
     sender = db.Column(db.Boolean, nullable=False)
-    message_type = db.Column(db.String(50), default='text')  # 'text', 'file'
+    message_type = db.Column(db.String(50), default='text') 
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     session = db.relationship('Session', back_populates='chats')
 
@@ -221,7 +240,7 @@ def get_chats(session_id):
         'chats': chats
     }, 200
 
-TITLE_PROMPT = "Answer in exactly 2-3 words that form the best title for this context. dont use qoutes."
+TITLE_PROMPT = """Read the Conversation between a user and a chat bot and provide exactly one title not more that 3 words. dont't use Markdown for this naming task."""
 def new_title(session_id):
     print("callde")
     chats = Chat.query.filter_by(session_id=session_id).order_by(Chat.timestamp).all()
@@ -258,12 +277,52 @@ def get_models():
         return {'error': str(e)}
 
 
+@app.route('/config', methods=['GET'])
+def get_config():
+    model_config = get_model_config()
+    return {
+        'config': model_config, 
+        'max_threads': get_max_threads(),
+        'gpus': count_nvidia_gpus()
+    }
+
+@app.route('/reset_config', methods=['POST'])
+def reset_config():
+    reset_model_config()
+    try:
+        _set_model(current_model, force=True)
+        return {'success': True}
+    except Exception as e:
+        return {'success': False, 'error': str(e)}
+
+@app.route('/update_config', methods=['POST'])
+def update_config():
+    data = request.get_json()
+    try:
+        update_model_config(data)
+        _set_model(current_model, force=True)
+    except Exception as e:
+        reset_config()
+        return {'success': False, 'error': str(e)}
+    return {"success": True}
+
+def _set_model(model_name, force=False):
+    global model, chain, current_model
+    try:
+        if force or current_model != model_name:
+            model = load_model()
+            chain = prompt | model
+            current_model = model_name
+        return True
+    except Exception as e:
+        return False
+
 @app.route('/set_model/<string:model_name>', methods=['GET'])
 def set_model(model_name):
     global model, chain, current_model
     try:
         if current_model != model_name:
-            model = OllamaLLM(model=model_name)
+            model = load_model()
             chain = prompt | model
             current_model = model_name
         return {'success': True}
@@ -281,10 +340,9 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 """
-TODO: add copy code and copy message
-
+TODO: add copy code 
 TODO: improve the model.
-TODO: Vector spaces.
+TODO: Vector storage.
 TODO: Code running functionality.
 TODO: Browsing functionality.
 """

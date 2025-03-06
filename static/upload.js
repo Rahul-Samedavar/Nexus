@@ -2,7 +2,6 @@ var selectedFiles = [];
 const fileInput = document.getElementById('fileInput');
 const previewContainer = document.getElementById('preview-container');
 function updatePreviews() {
-    // Clear the preview container
     previewContainer.innerHTML = '';
 
     selectedFiles.forEach((file, index) => {
@@ -24,6 +23,7 @@ function updatePreviews() {
 function getFileType(file) {
     const extension = file.name.split('.').pop().toLowerCase();
     if (file.type.startsWith('image/')) return 'image';
+    if (extension in ['png', 'jpg', 'jpeg']) return 'image';
     if (extension === 'pdf') return 'pdf';
     if (extension === 'py') return 'py';
     if (extension === 'txt') return 'txt';
@@ -42,10 +42,10 @@ function getFileType(file) {
 
 
 function handleFileUpload(event) {
-    const files = Array.from(event.target.files); // Convert FileList to an array
-    selectedFiles = [...selectedFiles, ...files]; // Add new files to the array
+    const files = Array.from(event.target.files); 
+    selectedFiles = [...selectedFiles, ...files];
     updatePreviews();
-    resetFileInput(); // Clear the file input to allow re-adding the same files
+    resetFileInput(); 
 }
 
 
@@ -75,7 +75,7 @@ function createFilePreview(src, fileName, fileType, index) {
     removeButton.className = 'remove-button';
     removeButton.innerHTML = '&times;';
     removeButton.addEventListener('click', () => {
-        removeFile(index); // Remove file when button is clicked
+        removeFile(index);
     });
 
     preview.appendChild(removeButton);
@@ -84,15 +84,15 @@ function createFilePreview(src, fileName, fileType, index) {
 }
 
 function removeFile(index) {
-    selectedFiles.splice(index, 1); // Remove the file from the array
-    updatePreviews(); // Recreate previews
-    resetFileInput(); // Update the file input to match the current selection
+    selectedFiles.splice(index, 1); 
+    updatePreviews();
+    resetFileInput(); 
 }
 
 function resetFileInput() {
-    const dataTransfer = new DataTransfer(); // Create a new DataTransfer object
-    selectedFiles.forEach(file => dataTransfer.items.add(file)); // Add remaining files
-    fileInput.files = dataTransfer.files; // Assign the updated file list to the input
+    const dataTransfer = new DataTransfer(); 
+    selectedFiles.forEach(file => dataTransfer.items.add(file)); 
+    fileInput.files = dataTransfer.files; 
 }
 
 

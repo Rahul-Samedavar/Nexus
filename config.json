@@ -1,0 +1,10 @@
+{
+    "temperature": null,
+    "max_tokens": null,
+    "top_k": null,
+    "top_p": null,
+    "repeat_last_n": null,
+    "repeat_penalty": null,
+    "num_gpu": null,
+    "num_thread": null
+}

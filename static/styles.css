@@ -477,3 +477,68 @@ md-block pre:hover{
   font-weight: bold;
   color: #a818f0;
 }
+
+
+#customize-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  align-items: center;
+  justify-content: center;
+}
+
+#customize-btn img {
+  height: 35px
+}
+
+#customization-panel {
+  position: absolute;
+  bottom: 60px;
+  right: 10px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  z-index: 1000;
+  display: none;
+  width: 450px;
+  max-width: 90vw;
+}
+
+#customization-panel h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 18px;
+  text-align: center;
+}
+
+#customization-list {
+  width: 100%;
+}
+
+#customization-list tr td {
+  padding: 8px;
+}
+
+#customization-list label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+#customization-list input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.center {
+  text-align: center;
+}
+
+#customization-list .btn {
+  margin-top: 10px;
+  width: 8rem;
+}
