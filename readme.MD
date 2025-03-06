@@ -86,27 +86,27 @@ The chatbot will be available at `http://localhost:5000`.
 ## 📸 Screenshots
 
 ### **1. Home Page**
-![](Images\home.png)
+![](Images/home.png)
 
 ### **2. Chat Interface**
-![](Images\markdown.png)
+![](Images/markdown.png)
 
 ### **3. Multimodal Chat**
-![](Images\files.png)
+![](Images/files.png)
 
-![](Images\files2.png)
+![](Images/files2.png)
 
 ### **4. Tables and Lists**
-![](Images\Table.png)
+![](Images/Table.png)
 
 ### **5. Programming**
-![](Images\coding.png)
+![](Images/coding.png)
 
 ### **6. Model Selection**
-![](Images\models.png)
+![](Images/models.png)
 
 ### **7. Customization**
-![](Images\config.png)
+![](Images/config.png)
 
 
 
