@@ -97,7 +97,7 @@ The chatbot will be available at `http://localhost:5000`.
 ![](Images/files2.png)
 
 ### **4. Tables and Lists**
-![](Images/Table.png)
+![](Images/table.png)
 
 ### **5. Programming**
 ![](Images/coding.png)
