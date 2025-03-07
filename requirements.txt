@@ -1,0 +1,8 @@
+flask
+flask_sqlalchemy
+langchain-ollama
+PyPDF2
+python-docx
+openpyxl
+pytesseract
+pillow
