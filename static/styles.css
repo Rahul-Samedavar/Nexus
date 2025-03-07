@@ -205,6 +205,7 @@ md-block li{
 md-block > h1{
   padding-top: 1rem;
   padding-bottom: .5rem;
+  line-height: 2rem;
 }
 
 md-block > h2{

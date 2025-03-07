@@ -1,12 +1,8 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import subprocess
 
-from werkzeug.utils import secure_filename
-
-import os
-from io import BytesIO
 from json import dumps
 
 from langchain_ollama import OllamaLLM
