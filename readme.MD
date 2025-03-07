@@ -50,6 +50,8 @@ cd Nexus
 ```
 
 ### 2️⃣ **Install Dependencies**
+Note: create a virtual environment to avoid version conflicts with other packages.
+
 Ensure you have Python installed, then run:
 ```bash
 pip install -r requirements.txt
