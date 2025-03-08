@@ -8,10 +8,8 @@ from json import dumps
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 
-
 from file_readers import *
 from config import *
-
 
 def list_models():
     try:
@@ -24,7 +22,9 @@ def list_models():
         return []
 
 template = """
-    You are Nexus my personal chatbot. Answer the question. Use Markdown format whenever you can.
+    I am Rahul, You are Nexus, my personal chatbot. Answer the question with following guidelines.
+    1. Use Markdown format.
+    2. Use Tables and Points when relevent.
 
     here is the conversation history: {context}
 
@@ -236,7 +236,7 @@ def get_chats(session_id):
         'chats': chats
     }, 200
 
-TITLE_PROMPT = """Read the Conversation between a user and a chat bot and provide exactly one title not more that 3 words. dont't use Markdown for this naming task."""
+TITLE_PROMPT = """Read the Conversation between a user and a chat bot and provide exactly one title not more that 3 words. You can use only numbers, aplhabets and space"""
 def new_title(session_id):
     print("callde")
     chats = Chat.query.filter_by(session_id=session_id).order_by(Chat.timestamp).all()
@@ -246,6 +246,9 @@ def new_title(session_id):
     for chat in chats:
         temp += f"\n{'User' if chat.sender else 'AI'}: {chat.message}"
     ans = chain.invoke({"context": temp, "question": TITLE_PROMPT})
+    for c in ans:
+        if not (c.isalnum() or c == ' '):
+            ans = ans.replace(c, '')
     Session.query.filter_by(id=session_id).update({Session.title: ans})
     db.session.commit()
     return ans
@@ -336,9 +339,7 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 """
-TODO: add copy code 
-TODO: improve the model.
-TODO: Vector storage.
-TODO: Code running functionality.
-TODO: Browsing functionality.
+TODO: Code Copy feature
+TODO: Vectore Database 
+TODO: Browsing Capability
 """

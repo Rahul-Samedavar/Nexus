@@ -20,6 +20,7 @@ nav {
   justify-content: space-between;
   align-items: center;
   font-size: 1.5rem;
+  height: 60px;
 }
 
 .btn {
@@ -32,6 +33,11 @@ nav {
   font-size: 1.2rem;
   font-weight: bold;
   margin-left: 0.7rem;
+}
+
+nav .btn{
+  font-size: 1rem;
+  height: 40px;
 }
 
 .red-btn {
